@@ -30,7 +30,7 @@ export class StreamService {
       call,
       openAiApiKey,
       agentUserId,
-      model: "gpt-4o-realtime-preview",
+      model: "",
     });
   }
 }

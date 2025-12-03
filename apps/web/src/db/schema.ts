@@ -102,6 +102,7 @@ export const interviews = pgTable("interviews", {
   endedAt: timestamp("ended_at"),
   transcriptUrl: text("transcript_url"),
   transcript: json("transcript"),
+  tokenUsage: json("token_usage"),
   recordingUrl: text("recording_url"),
   summary: text("summary"),
   createdAt: timestamp("created_at").defaultNow().notNull(),

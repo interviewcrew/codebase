@@ -1,0 +1,1 @@
+ALTER TABLE "interviews" ADD COLUMN "token_usage" json;

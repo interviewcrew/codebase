@@ -1,10 +1,10 @@
 // import from the packages
 import { inngest } from "@/inngest/client";
-import { createAgent, openai, TextMessage } from "@inngest/agent-kit";
 import { and, eq, inArray } from "drizzle-orm";
 import JSONL from "jsonl-parse-stringify";
 import OpenAI from "openai";
 import { ChatCompletionMessageParam } from "openai/resources/index.mjs";
+
 
 // import from the libraries
 import { db } from "@/db";
@@ -13,9 +13,16 @@ import { InterviewStatus, StreamTranscriptItem } from "@/modules/interviews/type
 import { streamChat } from "@/lib/stream-chat";
 import { generateAvatarUri } from "@/lib/avatar";
 
-export const summarizer = createAgent({
-  name: "summarizer",
-  system: `
+// Define TokenUsage type
+type TokenUsage = {
+  source: "chat" | "summary" | "agent";
+  prompt_tokens: number;
+  completion_tokens: number;
+  total_tokens: number;
+  created_at: string;
+};
+
+export const summarizerSystemPrompt = `
         You are an expert Technical Interview Coach. Your goal is to assess the candidate's performance in a mock interview.
         
         You will be provided with a transcript of the interview.
@@ -33,9 +40,7 @@ export const summarizer = createAgent({
         - List specific areas where the candidate can improve.
 
         # 📝  Detailed Feedback
-        Provide detailed feedback on specific responses or sections of the interview. Cite specific examples from the transcript.`.trim(),
-  model: openai({ model: "gpt-5.1", apiKey: process.env.OPENAI_API_KEY }),
-});
+        Provide detailed feedback on specific responses or sections of the interview. Cite specific examples from the transcript.`.trim();
 
 export const interviewsProcessing = inngest.createFunction(
   { id: "interviews/processing" },
@@ -90,17 +95,48 @@ export const interviewsProcessing = inngest.createFunction(
       });
     });
 
-    const { output } = await summarizer.run(
-      "Summarize the following transcript: " +
-        JSON.stringify(transcriptWithSpeakers)
-    );
+    const { summary, usage } = await step.run("generate-summary", async () => {
+      const openaiClient = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+      const response = await openaiClient.chat.completions.create({
+        model: "gpt-5.1", // Keeping the model name from original code, verify if valid or use gpt-4o
+        messages: [
+          { role: "system", content: summarizerSystemPrompt },
+          {
+            role: "user",
+            content: "Summarize the following transcript: " + JSON.stringify(transcriptWithSpeakers),
+          },
+        ],
+      });
+
+      return {
+        summary: response.choices[0].message.content || "",
+        usage: response.usage,
+      };
+    });
 
     await step.run("save-summary", async () => {
+      const newUsage: TokenUsage = {
+        source: "summary",
+        prompt_tokens: usage?.prompt_tokens || 0,
+        completion_tokens: usage?.completion_tokens || 0,
+        total_tokens: usage?.total_tokens || 0,
+        created_at: new Date().toISOString(),
+      };
+
+      // Fetch existing usage to append
+      const [interview] = await db
+        .select({ tokenUsage: interviews.tokenUsage })
+        .from(interviews)
+        .where(eq(interviews.id, event.data.interviewId));
+
+      const currentUsage = (interview?.tokenUsage as TokenUsage[]) || [];
+
       await db
         .update(interviews)
         .set({
-          summary: (output[0] as TextMessage).content as string,
+          summary,
           status: InterviewStatus.COMPLETED,
+          tokenUsage: [...currentUsage, newUsage],
         })
         .where(eq(interviews.id, event.data.interviewId));
     });
@@ -177,7 +213,7 @@ export const handleChatReply = inngest.createFunction(
               Be concise, helpful, and focus on providing accurate information from the meeting and the ongoing conversation.
             `;
 
-      const responseText = await step.run("generate-response", async () => {
+      const { responseText, usage } = await step.run("generate-response", async () => {
         const channel = streamChat.channel("messaging", channelId);
         
         const { messages } = await channel.query({
@@ -205,7 +241,10 @@ export const handleChatReply = inngest.createFunction(
           ],
         });
 
-        return response.choices[0].message.content;
+        return {
+          responseText: response.choices[0].message.content,
+          usage: response.usage,
+        };
       });
 
       if (!responseText) {
@@ -233,6 +272,25 @@ export const handleChatReply = inngest.createFunction(
             image: avatarUrl,
           },
         });
+      });
+
+      await step.run("save-usage", async () => {
+         const newUsage: TokenUsage = {
+          source: "chat",
+          prompt_tokens: usage?.prompt_tokens || 0,
+          completion_tokens: usage?.completion_tokens || 0,
+          total_tokens: usage?.total_tokens || 0,
+          created_at: new Date().toISOString(),
+        };
+
+        const currentUsage = (interview.tokenUsage as TokenUsage[]) || [];
+
+        await db
+          .update(interviews)
+          .set({
+            tokenUsage: [...currentUsage, newUsage],
+          })
+          .where(eq(interviews.id, interview.id));
       });
     }
   }

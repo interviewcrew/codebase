@@ -22,6 +22,50 @@ export class InterviewConductor {
     this.openAIAgent = openAIAgent;
     this.systemMessage = systemMessage;
     this.interviewInstructions = interviewInstructions;
+
+    this.setupTokenLogging();
+  }
+
+  private setupTokenLogging() {
+    try {
+      // Listen for usage events from OpenAI Realtime API
+      // @ts-ignore - The client types might not fully expose the event emitter methods
+      this.openAIAgent.on("response.done", (event: any) => {
+        if (event.response?.usage) {
+          this.logUsage(event.response.usage);
+        }
+      });
+    } catch (error) {
+      console.error("Failed to setup token logging:", error);
+    }
+  }
+
+  private async logUsage(usage: any) {
+    const WEB_APP_URL = process.env.WEB_APP_URL || "http://web:3000";
+    const AGENT_SECRET = process.env.AGENT_SECRET || "secret";
+
+    try {
+      await fetch(`${WEB_APP_URL}/api/internal/token-usage`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-secret": AGENT_SECRET,
+        },
+        body: JSON.stringify({
+          interviewId: this.interviewId,
+          usage: {
+            prompt_tokens: usage.input_tokens,
+            completion_tokens: usage.output_tokens,
+            total_tokens: usage.total_tokens,
+          },
+        }),
+      });
+    } catch (error) {
+      console.error(
+        `Interview conductor for Interview ${this.interviewId}: Failed to log token usage`,
+        error
+      );
+    }
   }
 
   public start() {
