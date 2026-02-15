@@ -37,9 +37,9 @@ export default function PrivacyPage() {
                 <section className="space-y-4">
                   <h2 className="text-2xl font-semibold text-foreground">1. Introduction</h2>
                   <p className="text-muted-foreground leading-relaxed">
-                    InterviewCrew (&quot;we,&quot; &quot;our,&quot; or &quot;us&quot;) is committed to protecting your privacy. 
-                    This Privacy Policy explains how your personal information is collected, used, and disclosed by InterviewCrew.
-                    This policy applies to our website and our AI-powered recruitment tools.
+                    My App (&quot;we,&quot; &quot;our,&quot; or &quot;us&quot;) is committed to protecting your privacy.
+                    This Privacy Policy explains how your personal information is collected, used, and disclosed by My App.
+                    This policy applies to our website and our services.
                   </p>
                 </section>
 
@@ -156,8 +156,8 @@ export default function PrivacyPage() {
                   <h2 className="text-2xl font-semibold text-foreground">8. Contact Us</h2>
                   <p className="text-muted-foreground leading-relaxed">
                     If you have any questions about these Terms, please contact us at: {" "}
-                    <a href="mailto:sadjad@interviewcrew.io" className="text-primary hover:underline hover:text-primary/80 transition-colors">
-                      sadjad@interviewcrew.io
+                    <a href="mailto:support@example.com" className="text-primary hover:underline hover:text-primary/80 transition-colors">
+                      support@example.com
                     </a>
                   </p>
                 </section>

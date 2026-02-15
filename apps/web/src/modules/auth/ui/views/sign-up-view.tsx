@@ -1,21 +1,17 @@
 "use client";
 
-// Imports from the framework
 import { useForm } from "react-hook-form";
 import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 
-// Imports from the packages
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2Icon, OctagonAlertIcon } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 import { FaGithub, FaGoogle } from "react-icons/fa";
-import { track } from "@/lib/analytics";
 
-// Imports from the components
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -61,7 +57,6 @@ export const SignUpView = () => {
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
     setPending(true);
     setError(null);
-    track("sign_up_started", { provider: "email" });
 
     authClient.signUp.email(
       {
@@ -72,12 +67,10 @@ export const SignUpView = () => {
       },
       {
         onError: ({ error }) => {
-          track("sign_up_failed", { provider: "email", error: error.message });
           setError(error.message);
           setPending(false);
         },
         onSuccess: () => {
-          track("sign_up_completed", { provider: "email" });
           setPending(false);
           router.push("/dashboard");
         },
@@ -88,7 +81,6 @@ export const SignUpView = () => {
   const onSocialSubmit = (provider: "github" | "google") => {
     setPending(true);
     setError(null);
-    track("sign_up_started", { provider });
 
     authClient.signIn.social(
       {
@@ -97,12 +89,10 @@ export const SignUpView = () => {
       },
       {
         onError: ({ error }) => {
-          track("sign_up_failed", { provider, error: error.message });
           setError(error.message);
           setPending(false);
         },
         onSuccess: () => {
-          track("sign_up_completed", { provider });
           setPending(false);
           router.push("/dashboard");
         },
@@ -255,7 +245,7 @@ export const SignUpView = () => {
             />
             <div className="relative z-10 flex flex-col gap-y-4 items-center">
               <Image src="/logo-dark.svg" alt="logo" width={92} height={92} />
-              <p className="text-2xl font-semibold text-white">InterviewCrew</p>
+              <p className="text-2xl font-semibold text-white">My App</p>
             </div>
           </div>
         </CardContent>

@@ -1,21 +1,17 @@
 "use client";
 
-// Imports from the framework
 import { useForm } from "react-hook-form";
 import Link from "next/link";
 import { useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 
-// Imports from the packages
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2Icon, OctagonAlertIcon } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 import { FaGithub, FaGoogle } from "react-icons/fa";
-import { track } from "@/lib/analytics";
 
-// Imports from the components
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -50,7 +46,6 @@ export const SignInView = () => {
   const onSubmit = (data: z.infer<typeof formSchema>) => {
     setPending(true);
     setError(null);
-    track("sign_in_started", { provider: "email" });
 
     authClient.signIn.email(
       {
@@ -60,12 +55,10 @@ export const SignInView = () => {
       },
       {
         onError: ({ error }) => {
-          track("sign_in_failed", { provider: "email", error: error.message });
           setError(error.message);
           setPending(false);
         },
         onSuccess: () => {
-          track("sign_in_completed", { provider: "email" });
           setPending(false);
           router.push("/dashboard");
         },
@@ -76,7 +69,6 @@ export const SignInView = () => {
   const onSocialSubmit = (provider: "github" | "google") => {
     setPending(true);
     setError(null);
-    track("sign_in_started", { provider });
 
     authClient.signIn.social(
       {
@@ -85,12 +77,10 @@ export const SignInView = () => {
       },
       {
         onError: ({ error }) => {
-          track("sign_in_failed", { provider, error: error.message });
           setError(error.message);
           setPending(false);
         },
         onSuccess: () => {
-          track("sign_in_completed", { provider });
           setPending(false);
           router.push("/dashboard");
         },
@@ -173,7 +163,7 @@ export const SignInView = () => {
                     disabled={pending}
                     onClick={() => onSocialSubmit("google")}
                   >
-                    <FaGoogle /> 
+                    <FaGoogle />
                   </Button>
                   <Button
                     variant="outline"
@@ -182,7 +172,7 @@ export const SignInView = () => {
                     disabled={pending}
                     onClick={() => onSocialSubmit("github")}
                   >
-                    <FaGithub /> 
+                    <FaGithub />
                   </Button>
                 </div>
                 <div className="text-center text-sm">
@@ -208,7 +198,7 @@ export const SignInView = () => {
             <div className="relative z-10 flex flex-col gap-y-4 items-center">
               <Image src="/logo-dark.svg" alt="logo" width={92} height={92} />
               <p className="text-2xl font-semibold text-sky-200">
-                InterviewCrew
+                My App
               </p>
             </div>
           </div>
