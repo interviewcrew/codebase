@@ -1,1 +1,1 @@
-export * from "./interview-content";
+export const APP_NAME = "My App";
