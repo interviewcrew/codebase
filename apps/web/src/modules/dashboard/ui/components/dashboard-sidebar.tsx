@@ -1,14 +1,11 @@
 "use client";
 
-// Imports from the framework
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 
-// Imports from packages
-import { BotIcon, SettingsIcon, VideoIcon, ShieldCheckIcon } from "lucide-react";
+import { FileTextIcon, SettingsIcon, ShieldCheckIcon } from "lucide-react";
 
-// Imports from components
 import { cn } from "@/lib/utils";
 import {
   Sidebar,
@@ -26,14 +23,9 @@ import { authClient } from "@/lib/auth-client";
 
 const firstSection = [
   {
-    icon: VideoIcon,
-    label: "Interviews",
-    href: "/dashboard/interviews",
-  },
-  {
-    icon: BotIcon,
-    label: "Coaches",
-    href: "/dashboard/coaches",
+    icon: FileTextIcon,
+    label: "Posts",
+    href: "/dashboard/posts",
   },
 ];
 
@@ -56,8 +48,9 @@ const adminSection = [
 export const DashboardSidebar = () => {
   const pathname = usePathname();
   const { data: session } = authClient.useSession();
-  
-  const isAdmin = session?.user?.email?.endsWith("@interviewcrew.io") && session?.user?.emailVerified;
+
+  const adminDomain = process.env.NEXT_PUBLIC_ADMIN_EMAIL_DOMAIN;
+  const isAdmin = adminDomain && session?.user?.email?.endsWith(`@${adminDomain}`) && session?.user?.emailVerified;
 
   return (
     <Sidebar>
@@ -121,7 +114,7 @@ export const DashboardSidebar = () => {
             ))}
           </SidebarMenu>
         </SidebarGroup>
-        
+
         {isAdmin && (
           <>
             <div className="px-4 py-2">
