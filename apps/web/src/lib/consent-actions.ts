@@ -14,7 +14,7 @@ type ConsentSnapshot = {
 
 function hashIpAddress(ip: string | null): string | null {
   if (!ip) return null;
-  const salt = process.env.IP_SALT || "default-salt-interview-crew"; // Fallback if env not set
+  const salt = process.env.IP_SALT || "default-salt-change-me"; // Fallback if env not set
   return createHash("sha256")
     .update(ip + salt)
     .digest("hex")
