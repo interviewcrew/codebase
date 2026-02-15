@@ -37,7 +37,7 @@ export default function TermsPage() {
                 <section className="space-y-4">
                   <h2 className="text-2xl font-semibold text-foreground">1. Agreement to Terms</h2>
                   <p className="text-muted-foreground leading-relaxed">
-                    By accessing or using the services provided by InterviewCrew (&quot;we,&quot; &quot;us,&quot; or &quot;our&quot;), 
+                    By accessing or using the services provided by My App (&quot;we,&quot; &quot;us,&quot; or &quot;our&quot;), 
                     you agree to be bound by these Terms of Service. If you do not agree to these terms, 
                     please do not use our services.
                   </p>
@@ -46,7 +46,7 @@ export default function TermsPage() {
                 <section className="space-y-4">
                   <h2 className="text-2xl font-semibold text-foreground">2. Description of Services</h2>
                   <p className="text-muted-foreground leading-relaxed">
-                    InterviewCrew provides an AI-first technical recruitment platform offering two primary services:
+                    My App provides an AI-first technical recruitment platform offering two primary services:
                   </p>
                   <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
                     <li>
@@ -103,9 +103,9 @@ export default function TermsPage() {
                   <h2 className="text-2xl font-semibold text-foreground">6. Intellectual Property</h2>
                   <p className="text-muted-foreground leading-relaxed">
                     The service, including its original content (excluding user-generated content), features, 
-                    and functionality, is and will remain the exclusive property of InterviewCrew and its licensors. 
+                    and functionality, is and will remain the exclusive property of My App and its licensors. 
                     Our trademarks may not be used in connection with any product or service without the prior 
-                    written consent of InterviewCrew.
+                    written consent of My App.
                   </p>
                 </section>
 
@@ -121,7 +121,7 @@ export default function TermsPage() {
                 <section className="space-y-4">
                   <h2 className="text-2xl font-semibold text-foreground">8. Limitation of Liability</h2>
                   <p className="text-muted-foreground leading-relaxed">
-                    In no event shall InterviewCrew, nor its directors, employees, partners, agents, suppliers, 
+                    In no event shall My App, nor its directors, employees, partners, agents, suppliers, 
                     or affiliates, be liable for any indirect, incidental, special, consequential or punitive 
                     damages, including without limitation, loss of profits, data, use, goodwill, or other 
                     intangible losses, resulting from your access to or use of or inability to access or use the Service.
@@ -140,8 +140,8 @@ export default function TermsPage() {
                   <h2 className="text-2xl font-semibold text-foreground">10. Contact Us</h2>
                   <p className="text-muted-foreground leading-relaxed">
                     If you have any questions about these Terms, please contact us at: {" "}
-                    <a href="mailto:sadjad@interviewcrew.io" className="text-primary hover:underline hover:text-primary/80 transition-colors">
-                      sadjad@interviewcrew.io
+                    <a href="mailto:support@example.com" className="text-primary hover:underline hover:text-primary/80 transition-colors">
+                      support@example.com
                     </a>
                   </p>
                 </section>
