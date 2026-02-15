@@ -8,14 +8,14 @@ services:
     environment:
       - PORT=8000
       - NODE_ENV=development
-      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/interview
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/app
     env_file:
       - .env
     volumes:
       - ./apps/agent:/app/apps/agent
       - ./packages:/app/packages
       - /app/apps/agent/node_modules
-    command: pnpm --filter @interview/agent dev
+    command: pnpm --filter @boilerplate/agent dev
     restart: unless-stopped
 
   web:
@@ -26,7 +26,7 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/interview
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/app
       - INNGEST_BASE_URL=http://inngest:8288
       - INNGEST_EVENT_KEY=local
     env_file:
@@ -48,12 +48,12 @@ services:
     ports:
       - "4983:4983"
     environment:
-      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/interview
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/app
     volumes:
       - ./apps/web:/app/apps/web
       - ./packages:/app/packages
       - /app/apps/web/node_modules
-    command: pnpm --filter @interview/web db:studio --host 0.0.0.0
+    command: pnpm --filter @boilerplate/web db:studio --host 0.0.0.0
     restart: unless-stopped
     depends_on:
       - postgres
@@ -69,7 +69,6 @@ services:
     command: "inngest dev --host 0.0.0.0 -u http://web:3000/api/inngest"
     restart: always
 
-  # Optional: Local Postgres if needed
   postgres:
     image: postgres:15
     ports:
@@ -77,18 +76,9 @@ services:
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=interview
+      - POSTGRES_DB=app
     volumes:
       - postgres_data:/var/lib/postgresql/data
-
-  # Optional: Ngrok for exposing local services
-  ngrok:
-    image: ngrok/ngrok:latest
-    ports:
-      - "4040:4040"
-    environment:
-      - NGROK_AUTHTOKEN=${NGROK_AUTHTOKEN}
-    command: "http --domain=${NGROK_DOMAIN} web:3000"
 
 volumes:
   postgres_data:

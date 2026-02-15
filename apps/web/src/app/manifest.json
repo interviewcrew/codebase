@@ -1,7 +1,7 @@
 {
-  "name": "Interview Crew Candidate Preparation Portal",
-  "short_name": "Interview Crew",
-  "description": "Preparing A-players Software Engineers to for their dream job",
+  "name": "My App",
+  "short_name": "My App",
+  "description": "A modern full-stack application boilerplate",
   "start_url": "/",
   "icons": [
     {

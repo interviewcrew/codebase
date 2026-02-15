@@ -5,7 +5,6 @@ import Script from "next/script";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import "./globals.css";
 import { TRPCReactProvider } from "@/trpc/client";
-import { PostHogProvider } from "@/components/posthog-provider";
 import { CookieConsent } from "@/components/cookie-consent";
 import { AnalyticsWrapper } from "@/components/analytics-wrapper";
 
@@ -14,8 +13,8 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Interview Crew Candidate Preparation Portal",
-  description: "Preparing A-players Software Engineers for their dream job",
+  title: "My App",
+  description: "A modern full-stack application boilerplate",
   icons: {
     icon: [
       {
@@ -58,11 +57,9 @@ export default function RootLayout({
                 });
               `}
             </Script>
-            <PostHogProvider>
-              {children}
-              <CookieConsent />
-              <AnalyticsWrapper />
-            </PostHogProvider>
+            {children}
+            <CookieConsent />
+            <AnalyticsWrapper />
           </body>
         </html>
       </TRPCReactProvider>
