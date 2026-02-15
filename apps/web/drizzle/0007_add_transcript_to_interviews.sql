@@ -1,1 +1,0 @@
-ALTER TABLE "interviews" ADD COLUMN "transcript" json;
