@@ -1,12 +1,9 @@
-// Imports from frameworks
 import { Dispatch, SetStateAction, useState } from "react";
 import { useRouter } from "next/navigation";
 
-// Imports from libraries
 import { useTRPC } from "@/trpc/client";
 import { MAX_PAGE_SIZE } from "@/constants";
 
-// Imports from components
 import {
   CommandResponsiveDialog,
   CommandInput,
@@ -15,7 +12,6 @@ import {
   CommandGroup,
   CommandEmpty,
 } from "@/components/ui/command";
-import { GeneratedAvatar } from "@/components/generated-avatar";
 import { useQuery } from "@tanstack/react-query";
 
 interface DashboardCommandProps {
@@ -28,14 +24,8 @@ export const DashboardCommand = ({ open, setOpen }: DashboardCommandProps) => {
   const [search, setSearch] = useState("");
 
   const trpc = useTRPC();
-  const { data: interviews } = useQuery(
-    trpc.interviews.getMany.queryOptions({
-      pageSize: MAX_PAGE_SIZE,
-      search: search,
-    })
-  );
-  const { data: coaches } = useQuery(
-    trpc.coaches.getMany.queryOptions({
+  const { data: posts } = useQuery(
+    trpc.posts.getMany.queryOptions({
       pageSize: MAX_PAGE_SIZE,
       search: search,
     })
@@ -48,45 +38,26 @@ export const DashboardCommand = ({ open, setOpen }: DashboardCommandProps) => {
       shouldFilter={false}
     >
       <CommandInput
-        placeholder="Find an interview or coach"
+        placeholder="Search posts..."
         value={search}
         onValueChange={(value) => setSearch(value)}
       />
       <CommandList>
-        <CommandGroup heading="Interviews">
+        <CommandGroup heading="Posts">
           <CommandEmpty>
             <span className="text-muted-foreground text-sm">
-              No interviews found
+              No posts found
             </span>
           </CommandEmpty>
-          {interviews?.items.map((interview) => (
+          {posts?.items.map((post) => (
             <CommandItem
-              key={interview.id}
+              key={post.id}
               onSelect={() => {
-                router.push(`/dashboard/interviews/${interview.id}`);
+                router.push(`/dashboard/posts/${post.id}`);
                 setOpen(false);
               }}
             >
-              {interview.title}
-            </CommandItem>
-          ))}
-        </CommandGroup>
-        <CommandGroup heading="Coaches">
-          <CommandEmpty>
-            <span className="text-muted-foreground text-sm">
-              No coaches found
-            </span>
-          </CommandEmpty>
-          {coaches?.items.map((coach) => (
-            <CommandItem
-              key={coach.id}
-              onSelect={() => {
-                router.push(`/dashboard/coaches/${coach.id}`);
-                setOpen(false);
-              }}
-            >
-              <GeneratedAvatar seed={coach.name} variant="botttsNeutral" className="size-4" />
-              {coach.name}
+              {post.title}
             </CommandItem>
           ))}
         </CommandGroup>
