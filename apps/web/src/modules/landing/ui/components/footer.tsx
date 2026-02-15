@@ -7,7 +7,7 @@ export default function Footer() {
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
           <p className="text-muted-foreground text-sm">
-            © {new Date().getFullYear()} Interview Crew. All rights reserved.
+            &copy; {new Date().getFullYear()} My App. All rights reserved.
           </p>
           <nav className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
             <Link
@@ -29,4 +29,3 @@ export default function Footer() {
     </footer>
   );
 }
-
