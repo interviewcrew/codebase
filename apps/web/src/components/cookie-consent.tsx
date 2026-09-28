@@ -1,7 +1,13 @@
 "use client";
 
+// import from the framework
 import { useState, useEffect, useCallback } from "react";
+import Link from "next/link";
+
+// import from packages
 import { Cookie, Settings2, Shield, BarChart3, Megaphone } from "lucide-react";
+
+// import from components
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import {
@@ -12,17 +18,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  type CookieConsent as CookieConsentType,
-  type CookiePreferences,
-  defaultConsent,
-  getCookiePreferences,
-  setCookiePreferences,
-  updateGTMConsent,
-} from "@/lib/cookies";
-import { logConsentAction } from "@/lib/consent-actions";
+
+// import from libraries
+import { type CookieConsent as CookieConsentType } from "@/lib/cookies";
+import { useCookieStore } from "@/lib/stores/cookie-store";
 import { cn } from "@/lib/utils";
-import Link from "next/link";
 
 type CookieCategory = {
   id: keyof CookieConsentType;
@@ -59,80 +59,66 @@ const cookieCategories: CookieCategory[] = [
 
 export function CookieConsent() {
   const [isVisible, setIsVisible] = useState(false);
-  const [showPreferences, setShowPreferences] = useState(false);
-  const [consent, setConsent] = useState<CookieConsentType>(defaultConsent);
   const [isAnimating, setIsAnimating] = useState(false);
+  
+  // Use Zustand store
+  const { 
+    consent, 
+    status, 
+    isModalOpen,
+    setConsent, 
+    acceptAll, 
+    rejectAll,
+    setModalOpen 
+  } = useCookieStore();
+  
+  // Local state for editing preferences in the dialog
+  const [tempConsent, setTempConsent] = useState<CookieConsentType>(consent);
 
   useEffect(() => {
-    const preferences = getCookiePreferences();
-    if (!preferences) {
+    // Show banner if status is pending
+    if (status === "pending") {
       const timer = setTimeout(() => {
         setIsVisible(true);
         setIsAnimating(true);
       }, 1000);
       return () => clearTimeout(timer);
     } else {
-      setConsent(preferences.consent);
-      updateGTMConsent(preferences.consent);
+      setIsVisible(false);
     }
-  }, []);
+  }, [status]);
 
+  // Sync local temp state when store changes or modal opens
   useEffect(() => {
-    const handleOpenPreferences = () => {
-      setConsent(getCookiePreferences()?.consent ?? defaultConsent);
-      setIsVisible(true);
-      setIsAnimating(true);
-      setShowPreferences(true);
-    };
+    if (isModalOpen) {
+      setTempConsent(consent);
+    }
+  }, [isModalOpen, consent]);
 
-    window.addEventListener("open-cookie-preferences", handleOpenPreferences);
-    return () => window.removeEventListener("open-cookie-preferences", handleOpenPreferences);
+  const closeBanner = useCallback(() => {
+    setIsAnimating(false);
+    setTimeout(() => setIsVisible(false), 300);
   }, []);
-
-  const savePreferences = useCallback(
-    (newConsent: CookieConsentType, status: CookiePreferences["status"]) => {
-      const preferences: CookiePreferences = {
-        consent: newConsent,
-        status,
-        updatedAt: new Date().toISOString(),
-      };
-      setCookiePreferences(preferences);
-      updateGTMConsent(newConsent);
-      logConsentAction(newConsent, status);
-      setIsAnimating(false);
-      setTimeout(() => setIsVisible(false), 300);
-    },
-    []
-  );
 
   const handleAcceptAll = useCallback(() => {
-    const allAccepted: CookieConsentType = {
-      necessary: true,
-      analytics: true,
-      marketing: true,
-    };
-    setConsent(allAccepted);
-    savePreferences(allAccepted, "accepted");
-  }, [savePreferences]);
+    acceptAll();
+    closeBanner();
+  }, [acceptAll, closeBanner]);
 
   const handleRejectAll = useCallback(() => {
-    const allRejected: CookieConsentType = {
-      necessary: true,
-      analytics: false,
-      marketing: false,
-    };
-    setConsent(allRejected);
-    savePreferences(allRejected, "rejected");
-  }, [savePreferences]);
+    rejectAll();
+    closeBanner();
+  }, [rejectAll, closeBanner]);
 
   const handleSavePreferences = useCallback(() => {
-    savePreferences(consent, "customized");
-    setShowPreferences(false);
-  }, [consent, savePreferences]);
+    setConsent(tempConsent, "customized");
+    setModalOpen(false);
+    closeBanner();
+  }, [tempConsent, setConsent, setModalOpen, closeBanner]);
 
   const handleToggleCategory = useCallback(
     (categoryId: keyof CookieConsentType) => {
-      setConsent((prev) => ({
+      setTempConsent((prev) => ({
         ...prev,
         [categoryId]: !prev[categoryId],
       }));
@@ -140,59 +126,64 @@ export function CookieConsent() {
     []
   );
 
-  if (!isVisible) return null;
+  // If banner is not visible AND modal is not open, render nothing.
+  if (!isVisible && !isModalOpen) return null;
 
   return (
     <>
-      <div
-        className={cn(
-          "fixed bottom-4 right-4 z-50 max-w-sm transition-all duration-300 ease-out",
-          isAnimating
-            ? "translate-y-0 opacity-100"
-            : "translate-y-full opacity-0"
-        )}
-      >
-        <div className="bg-card border-border rounded-xl border p-4 shadow-lg backdrop-blur-sm">
-          <div className="space-y-3">
-            <div className="flex items-center gap-2">
-              <Cookie className="size-4 text-cyan-600 dark:text-cyan-400" />
-              <h3 className="text-foreground text-sm font-semibold">
-                Cookie Settings
-              </h3>
-            </div>
-            <p className="text-muted-foreground text-xs leading-relaxed">
-              We use cookies to enhance your experience.{" "}
-              <Link href="/privacy" className="text-cyan-600 hover:underline dark:text-cyan-400">
-                Learn more
-              </Link>
-            </p>
+      {/* Banner */}
+      {isVisible && (
+        <div
+          className={cn(
+            "fixed bottom-4 right-4 z-50 max-w-sm transition-all duration-300 ease-out",
+            isAnimating
+              ? "translate-y-0 opacity-100"
+              : "translate-y-full opacity-0"
+          )}
+        >
+          <div className="bg-card border-border rounded-xl border p-4 shadow-lg backdrop-blur-sm">
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <Cookie className="size-4 text-cyan-600 dark:text-cyan-400" />
+                <h3 className="text-foreground text-sm font-semibold">
+                  Cookie Settings
+                </h3>
+              </div>
+              <p className="text-muted-foreground text-xs leading-relaxed">
+                We use cookies to enhance your experience.{" "}
+                <Link href="/privacy" className="text-cyan-600 hover:underline dark:text-cyan-400">
+                  Learn more
+                </Link>
+              </p>
 
-            <div className="flex flex-wrap items-center gap-2">
-              <Button
-                onClick={handleAcceptAll}
-                size="sm"
-                className="bg-cyan-800 text-white hover:bg-cyan-600 dark:bg-cyan-700 dark:hover:bg-cyan-600"
-              >
-                Accept All
-              </Button>
-              <Button onClick={handleRejectAll} variant="outline" size="sm">
-                Reject
-              </Button>
-              <Button
-                onClick={() => setShowPreferences(true)}
-                variant="ghost"
-                size="sm"
-                className="text-muted-foreground"
-              >
-                <Settings2 className="mr-1 size-3.5" />
-                Customize
-              </Button>
+              <div className="flex flex-wrap items-center gap-2">
+                <Button
+                  onClick={handleAcceptAll}
+                  size="sm"
+                  className="bg-cyan-800 text-white hover:bg-cyan-600 dark:bg-cyan-700 dark:hover:bg-cyan-600"
+                >
+                  Accept All
+                </Button>
+                <Button onClick={handleRejectAll} variant="outline" size="sm">
+                  Reject
+                </Button>
+                <Button
+                  onClick={() => setModalOpen(true)}
+                  variant="ghost"
+                  size="sm"
+                  className="text-muted-foreground"
+                >
+                  <Settings2 className="mr-1 size-3.5" />
+                  Customize
+                </Button>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
 
-      <Dialog open={showPreferences} onOpenChange={setShowPreferences}>
+      {/* Preferences Dialog */}
+      <Dialog open={isModalOpen} onOpenChange={setModalOpen}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
@@ -232,7 +223,7 @@ export function CookieConsent() {
                   </div>
                 </div>
                 <Switch
-                  checked={consent[category.id]}
+                  checked={tempConsent[category.id]}
                   onCheckedChange={() => handleToggleCategory(category.id)}
                   disabled={category.required}
                   aria-label={`Toggle ${category.name} cookies`}
@@ -244,7 +235,7 @@ export function CookieConsent() {
           <DialogFooter className="flex gap-3 sm:gap-3">
             <Button
               variant="outline"
-              onClick={() => setShowPreferences(false)}
+              onClick={() => setModalOpen(false)}
               className="flex-1 sm:flex-none sm:min-w-[120px]"
             >
               Cancel
@@ -267,13 +258,11 @@ export function CookieSettingsButton({
 }: {
   className?: string;
 }) {
-  const handleOpenSettings = useCallback(() => {
-    window.dispatchEvent(new CustomEvent("open-cookie-preferences"));
-  }, []);
+  const { setModalOpen } = useCookieStore();
 
   return (
     <button
-      onClick={handleOpenSettings}
+      onClick={() => setModalOpen(true)}
       className={cn(
         "text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5 text-sm transition-colors",
         className
@@ -284,4 +273,3 @@ export function CookieSettingsButton({
     </button>
   );
 }
-

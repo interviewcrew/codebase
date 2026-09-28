@@ -3,6 +3,7 @@
 import posthog from "posthog-js";
 import { PostHogProvider as PHProvider } from "posthog-js/react";
 import { useEffect, useState } from "react";
+import { useCookieStore } from "@/lib/stores/cookie-store";
 
 declare global {
   interface Window {
@@ -12,6 +13,7 @@ declare global {
 
 export function PostHogProvider({ children }: { children: React.ReactNode }) {
   const [isInitialized, setIsInitialized] = useState(false);
+  const { consent } = useCookieStore();
 
   useEffect(() => {
     const key = process.env.NEXT_PUBLIC_POSTHOG_KEY;
@@ -20,16 +22,29 @@ export function PostHogProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
+    // Initialize PostHog but disable capturing by default for GDPR compliance
     posthog.init(key, {
       api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST || "https://eu.i.posthog.com",
       person_profiles: "identified_only",
       capture_pageview: true,
       capture_pageleave: true,
+      opt_out_capturing_by_default: true,
     });
 
     window.posthog = posthog;
     setIsInitialized(true);
   }, []);
+
+  // Reactively handle consent updates
+  useEffect(() => {
+    if (!isInitialized) return;
+
+    if (consent.analytics) {
+      posthog.opt_in_capturing();
+    } else {
+      posthog.opt_out_capturing();
+    }
+  }, [consent.analytics, isInitialized]);
 
   if (!isInitialized) {
     return <>{children}</>;
